@@ -1,0 +1,32 @@
+from bs4 import BeautifulSoup
+import requests
+import sys
+def get_dependencies(package_name, route, depth, max_depth):
+    url = f'https://www.npmjs.com/package/{package_name}?activeTab=dependencies'
+    r = requests.get(url)
+    Depend = []
+    soup = BeautifulSoup(r.text, "html.parser")
+    Content = soup.find('ul', role='list')
+    for data in Content:
+        if data.find('a', class_='_75a5f581 f4 fw6 fl db pv1 ma1 black-70 link hover-black animate') is not None:
+            Depend.append(data.text)
+    if len(Depend) == 0:
+        i = 0
+        while i < min(max_depth, len(route)):
+            if i != min(max_depth - 1, len(route) - 1):
+                print('"' + route[i] + '"', end='->')
+            else:
+                print('"' + route[i] + '"')
+            i += 1
+    for data in Depend:
+        while len(route) > depth:
+            route.pop()
+        route.append(data)
+        get_dependencies(data, route, depth+1, max_depth)
+route = ['express']
+print('Enter required depth')
+max_depth = int(input())
+if max_depth < 1:
+    print("wrong depth: Enter natural number")
+else:
+    get_dependencies(sys.argv[1], route, 1, max_depth)
